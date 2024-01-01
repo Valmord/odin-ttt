@@ -10,6 +10,15 @@ function createGameBoard(){
     }
   }
 
+  const updateBoard = (playerMove, player) => {
+    playerMove -= 1;
+    console.log(playerMove, player);
+    const row = Math.floor(playerMove/3);
+    const col = playerMove % 3;
+    console.log(row, col);
+    board[row][col] = player;
+  }
+
   const getGameBoard = () => board;
 
   const printBoard = () => {
@@ -18,13 +27,23 @@ function createGameBoard(){
     })
   }
 
-  return {getBoard, printBoard}
+
+
+  return {getGameBoard, printBoard, updateBoard}
 }
 
 function createGameController(){
   const [player1, player2] = ['X', 'O']; // Player game icons
   const board = createGameBoard();
-  const currentPlayer = player1;
+  let currentPlayer = player1;
+  const stats = {
+    currentRound: 0,
+    score: {
+      wins: 0,
+      losses: 0,
+      draws: 0
+    },
+  }
 
 
   const checkIfSame = function(playerIcon){
@@ -35,43 +54,78 @@ function createGameController(){
 
   const checkWinner = player => {
     const checkPlayer = checkIfSame(player);
+    const bd = board.getGameBoard();
     switch (true) {
-      case board[0].every(checkPlayer):
+      case bd[0].every(checkPlayer):
         break;
-      case board[1].every(checkPlayer):
+      case bd[1].every(checkPlayer):
         break;
-      case board[2].every(checkPlayer):
+      case bd[2].every(checkPlayer):
         break;
-      case [board[0][0],board[1][0],board[2][0]].every(checkPlayer):
+      case [bd[0][0],bd[1][0],bd[2][0]].every(checkPlayer):
         break;
-      case [board[0][1],board[1][1],board[2][1]].every(checkPlayer):
+      case [bd[0][1],bd[1][1],bd[2][1]].every(checkPlayer):
         break;
-      case [board[0][2],board[1][2],board[2][2]].every(checkPlayer):
+      case [bd[0][2],bd[1][2],bd[2][2]].every(checkPlayer):
         break;
-      case [board[0][0],board[1][1],board[2][2]].every(checkPlayer):
+      case [bd[0][0],bd[1][1],bd[2][2]].every(checkPlayer):
         break;
-      case [board[0][2],board[1][1],board[2][0]].every(checkPlayer):
+      case [bd[0][2],bd[1][1],bd[2][0]].every(checkPlayer):
         break;
       default:
         return;
     }
-    console.log(`Winner is ${player}`);
+    return true;
+  }
+
+  const validatePlayerMove = (playerMove) => {
+    playerMove -= 1; 
+    const row = Math.floor(playerMove/3);
+    const col = playerMove % 3;
+    return board.getGameBoard()[row][col] === '_'
+  }
+
+  const getPlayerMove = () => {
+    while (true) {
+      let playerMove = prompt('Please type 1-9');
+      if (playerMove.toLowerCase() === 'q') {
+        return;
+      }
+      if (+playerMove > 0 && +playerMove <= 9 && validatePlayerMove(+playerMove)) {
+        return +playerMove;
+      }
+    }
   }
 
   const switchPlayers = () => currentPlayer = currentPlayer === player1 ? player2 : player1;
+
   const playRound = () => {
-
-
-    checkWinner();
+    board.printBoard();
+    const playerMove = getPlayerMove();
+    board.updateBoard(playerMove, currentPlayer);
+    if (checkWinner(currentPlayer)){
+      console.log(`Player ${currentPlayer} is the winner!`);
+      board.printBoard();
+      return true;
+    } else {
+      switchPlayers();
+    }
   }
 
   return { playRound };
 }
 
-const game = createGameController();
+function main(){
+  const game = createGameController();
+  while(true){
+    if(game.playRound()){
+      break;
+    }
+  }
+}
 
 
-
+main();
 
 
 // Object.setPrototypeOf(createPlayer,)

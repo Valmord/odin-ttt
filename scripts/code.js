@@ -32,19 +32,21 @@ function createGameBoard(){
   return {getGameBoard, printBoard, updateBoard}
 }
 
-function createGameController(){
-  const [player1, player2] = ['X', 'O']; // Player game icons
-  const board = createGameBoard();
-  let currentPlayer = player1;
-  const stats = {
-    currentRound: 0,
+function createPlayer(icon){
+  return {
+    icon,
     score: {
       wins: 0,
       losses: 0,
       draws: 0
-    },
+    }
   }
+}
 
+function createGameController(){
+  const board = createGameBoard();
+  let currentPlayer = player1.icon;
+  let currentRound = 0;
 
   const checkIfSame = function(playerIcon){
     return function(currentCellValue){
@@ -78,6 +80,28 @@ function createGameController(){
     return true;
   }
 
+  const updatePlayerScores = (playerIcon) => {
+    switch (playerIcon) {
+      case 'X':
+        player1.score.wins++;
+        player2.score.losses++;
+        break;
+      case 'O':
+        player1.score.losses++;
+        player2.score.wins++;
+        break;
+      default:
+        player1.score.draws++;
+        player2.score.draws++;
+    }
+  }
+
+  const displayScore = () => {
+    console.log(
+`player1: ${player1.score.wins}w, ${player1.score.losses}l, ${player1.score.draws}d
+player2: ${player2.score.wins}w, ${player2.score.losses}l, ${player2.score.draws}d`)
+  }
+
   const validatePlayerMove = (playerMove) => {
     playerMove -= 1; 
     const row = Math.floor(playerMove/3);
@@ -97,158 +121,40 @@ function createGameController(){
     }
   }
 
-  const switchPlayers = () => currentPlayer = currentPlayer === player1 ? player2 : player1;
+  const switchPlayers = () => currentPlayer = currentPlayer === player1.icon ? player2.icon : player1.icon;
 
   const playRound = () => {
     board.printBoard();
     const playerMove = getPlayerMove();
     board.updateBoard(playerMove, currentPlayer);
-    if (checkWinner(currentPlayer)){
+    currentRound++;
+    if (currentRound >= 5 && checkWinner(currentPlayer)){
       console.log(`Player ${currentPlayer} is the winner!`);
       board.printBoard();
+      updatePlayerScores(currentPlayer);
       return true;
+    } else if (currentRound === 9) {
+      console.log(`Player ${currentPlayer} is the winner!`);
+      updatePlayerScores('draw');
     } else {
       switchPlayers();
     }
   }
 
-  return { playRound };
+  return { playRound, displayScore };
 }
+
+const player1 = createPlayer('X');
+const player2 = createPlayer('O');
 
 function main(){
   const game = createGameController();
   while(true){
     if(game.playRound()){
+      game.displayScore();
       break;
     }
   }
 }
 
-
 main();
-
-
-// Object.setPrototypeOf(createPlayer,)
-
-// const game = {
-//   board: [
-//     1, 2, 3,
-//     4, 5, 6,
-//     7, 8, 9
-//   ],
-
-//   score: {
-//     wins: 0,
-//     losses: 0,
-//     draws: 0
-//   },
-
-//   stats: {
-//     round: 0,
-//     currentMoves: 0,
-//     winner: '',
-//   },
-
-//   playGame(){
-//     let running = true;
-//     while(running){
-//       this.displayBoard();
-//       this.getPlayerMove();
-//       running = !this.checkIfWinner();
-//       this.getCompMove();
-//       running = !this.checkIfWinner();
-//     }
-//   },
-
-//   resetScore(){
-//     [this.score.wins,
-//     this.score.losses,
-//     this.score.draws] = [0,0,0];
-//   },
-
-//   displayBoard(){
-//     let row = '';
-//     for (let i = 0; i < this.board.length; i++ ) {
-//       row += `${this.board[i]} `
-//       if ((i+1)%3==0) {
-//         console.log((i+1)/3,row.trimEnd());
-//         row = '';
-//       }
-//     }
-//   },
-
-//   validateMove(move){
-//     return this.board.includes(move);
-//   },
-
-//   updateBoard(symbol, cell){
-//     this.board[this.board.indexOf(cell)] = symbol;
-//   },
-
-//   getPossibleMoves(){
-//     const moves = this.board.filter(value => typeof value === 'number');
-//     return moves;
-//   },
-
-//   getPlayerMove(){
-//     moves = this.getPossibleMoves();
-//     console.log(moves); 
-//     while (true){
-//       let playerMove = +prompt(`Please pick from the following numbers: ${moves.join(', ')}`);
-//       if (this.validateMove(playerMove)) {
-//         this.updateBoard('X', playerMove);
-//         break;
-//       }
-//     }
-//   },
-
-//   getCompMove(){
-//     const compMove = Math.ceil(Math.random()*this.board.length);
-//     console.log("comp move", compMove);
-//     this.updateBoard('O', this.getPossibleMoves()[compMove]);
-//   },
-
-//   checkIfWinner(){
-//     if (++this.stats.currentMoves < 5) return;
-//     b = this.board;
-//     symbols = ['X','O'];
-//     for (let i = 0; i < 2; i++){
-//       if (
-//       [b[0], b[1], b[2]].every(value => value === symbols[i]) ||
-//       [b[0], b[3], b[6]].every(value => value === symbols[i]) ||
-//       [b[0], b[4], b[8]].every(value => value === symbols[i]) ||
-//       [b[1], b[4], b[7]].every(value => value === symbols[i]) ||
-//       [b[2], b[5], b[8]].every(value => value === symbols[i]) ||
-//       [b[2], b[4], b[6]].every(value => value === symbols[i]) ||
-//       [b[3], b[4], b[5]].every(value => value === symbols[i]) ||
-//       [b[6], b[7], b[8]].every(value => value === symbols[i])
-//       ){
-//         console.log(b);
-//         this.stats.winner = symbols[i];
-//         console.log(`Player ${this.stats.winner} wins!`);
-//     }
-//     }
-//     return this.stats.winner;
-//   },
-
-//   // checkIfWinnerTest(){
-//   //   b = this.board;
-//   //   symbols = ['X','O'];
-//   //   for (let i = 0; i < 2; i++){
-//   //     console.log([b[0], b[1], b[2]].every(value => value === symbols[i]));
-//   //     console.log([b[0], b[3], b[6]].every(value => value === symbols[i]));
-//   //     console.log([b[0], b[4], b[8]].every(value => value === symbols[i]));
-//   //     console.log([b[1], b[4], b[7]].every(value => value === symbols[i]));
-//   //     console.log([b[2], b[5], b[8]].every(value => value === symbols[i]));
-//   //     console.log([b[2], b[4], b[6]].every(value => value === symbols[i]));
-//   //     console.log([b[3], b[4], b[5]].every(value => value === symbols[i]));
-//   //     console.log([b[6], b[7], b[8]].every(value => value === symbols[i]));   
-//   //   }
-//   // }
-
-// }
-
-
-// const domElement = (function(){
-
-// })

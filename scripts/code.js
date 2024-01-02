@@ -8,6 +8,7 @@ const domElements = {
   resetButton: document.querySelector('.reset-button'),
   playAgainButton: document.querySelector('.play-again-button'),
   buttonContainer: document.querySelector('.btn-container'),
+  changeModeButton: document.querySelector('.change-mode'),
 }
 
 function createGameBoard(){
@@ -113,10 +114,16 @@ function createGameController(){
   }
 
   const getWinnerAndScore = () => {
-    const scoreString = 
-    `Player 1 score: ${player1.score.wins}w, ${player1.score.losses}l, ${player1.score.draws}d ` + 
-    `Player 2 score: ${player2.score.wins}w, ${player2.score.losses}l, ${player2.score.draws}d`;
-    return winner === 'draw' ? 'Draw! ' + scoreString : `${winner} wins! ` + scoreString;
+    const scoreArr = [
+      '',
+      `Player 1 score: ${player1.score.wins} wins, ${player1.score.losses} losses, ${player1.score.draws} draws`,
+      `Player 2 score: ${player2.score.wins} wins, ${player2.score.losses} losses, ${player2.score.draws} draws`];
+      if (winner === 'draw') {
+        scoreArr[0] = 'Draw!';
+      } else {
+        scoreArr[0] = `${winner} wins!`
+      }
+      return scoreArr;
   }
 
   const getIfWinner = () => winner;
@@ -132,16 +139,33 @@ function createGameController(){
     } else false;
   }
 
-  const playRound = (row, col) => {
+  const getAIMove = () => {
+    while(true){
+      let aiMove = Math.floor(Math.random()*9);
+      let row = Math.floor(aiMove / 3);
+      let col = aiMove % 3;
+      if (checkValidMove(row, col)) {
+        playRound(row, col, 'pvm');
+        break;
+      }
+    }  
+  }
+
+  const playRound = (row, col, mode) => {
     board.updateBoard(row, col, currentPlayer);
     currentRound++;
     if (currentRound >= 5 && checkIfWinner(currentPlayer)){
       updatePlayerScores(currentPlayer);
+      return;
     } else if (currentRound > 9) {
       updatePlayerScores('draw');
-    } else {
-      switchPlayers();
+      return;
     }
+    switchPlayers();
+    if (mode === 'pvm' && currentPlayer === 'O') {
+      getAIMove();
+    }
+    
   }
 
   const resetGame = () => {
@@ -152,23 +176,36 @@ function createGameController(){
 
   const playAgain = () => {
     winner = '';
+    currentPlayer = 'X';
     currentRound = 1;
     board.setupBoard();
   }
 
-  return { playRound, getGameBoard: board.getGameBoard, getCurrentTurn, checkValidMove, getIfWinner, getWinnerAndScore, playAgain, resetGame};
+  return { playRound, getGameBoard: board.getGameBoard, getCurrentTurn, checkValidMove, getIfWinner, 
+    getWinnerAndScore, playAgain, resetGame, getAIMove};
 }
 
 function createDisplayController(){
   const game = createGameController();
+  let gameMode = 'pvp';
 
   const updateGameDisplay = () => {
     displayBoardGrid();
     addCellListeners();
     displayCurrentTurn();
+    displayWinnerAndScore();
+  }
+
+  const displayWinnerAndScore = () => {
     domElements.scoreElement.textContent = '';
     if (game.getIfWinner()) {
-      domElements.scoreElement.textContent = game.getWinnerAndScore();
+      const scoreArray = game.getWinnerAndScore();
+      console.table(scoreArray);
+      scoreArray.forEach( value => {
+        const pElement = document.createElement('p');
+        pElement.textContent = value;
+        domElements.scoreElement.appendChild(pElement);
+      })
     }
   }
 
@@ -204,7 +241,7 @@ function createDisplayController(){
             cell.classList.remove('prevent-click');
           },1000)
         } else {
-            game.playRound(row,col);
+            game.playRound(row,col,gameMode);
             updateGameDisplay();
         }
       });
@@ -226,10 +263,26 @@ function createDisplayController(){
         dom.buttonContainer.style.display = 'flex';
         dom.headerTurn.style.display = 'block';
       })
+
+      dom.modalPvm.addEventListener('click', () => {
+        dom.startupModal.style.display = 'none';
+        dom.gameBoard.style.display = 'grid';
+        dom.buttonContainer.style.display = 'flex';
+        dom.headerTurn.style.display = 'block';
+        gameMode = 'pvm';
+      })
     
       dom.playAgainButton.addEventListener('click', () => {
         game.playAgain();
         updateGameDisplay();
+      })
+
+      dom.changeModeButton.addEventListener('click', () => {
+        gameMode = gameMode === 'pvp' ? 'pvm' : 'pvp';
+        if (gameMode === 'pvm' && game.getCurrentTurn() === 'O') {
+          game.getAIMove();
+          updateGameDisplay();
+        }
       })
     }
 

@@ -78,7 +78,7 @@ main {
 }
 
 .board-container {
-    margin: 30px auto;
+    margin: 20px auto;
     display: none;
     background-color: var(--secondary-color);
     border: 2px solid var(--border-color);

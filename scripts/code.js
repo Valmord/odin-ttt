@@ -6,6 +6,8 @@ const domElements = {
   headerTurn: document.querySelector('body>header>p'),
   scoreElement: document.querySelector('.score'),
   resetButton: document.querySelector('.reset-button'),
+  playAgainButton: document.querySelector('.play-again-button'),
+  buttonContainer: document.querySelector('.btn-container'),
 }
 
 function createGameBoard(){
@@ -25,7 +27,6 @@ function createGameBoard(){
 
 
   const updateBoard = (row, col, icon) => {
-    console.log(row, col, icon);
     gameBoard[row][col] = icon;
   }
 
@@ -126,14 +127,12 @@ function createGameController(){
 
   const checkValidMove = (row, col) => {
     const bd = board.getGameBoard();  
-    console.log(bd);
     if (bd[row][col] === '') {
       return true;
     } else false;
   }
 
   const playRound = (row, col) => {
-    console.log(currentPlayer); 
     board.updateBoard(row, col, currentPlayer);
     currentRound++;
     if (currentRound >= 5 && checkIfWinner(currentPlayer)){
@@ -148,13 +147,13 @@ function createGameController(){
   const resetGame = () => {
     [player1.score.draws, player1.score.losses, player1.score.wins] = [0,0,0];
     [player2.score.draws, player2.score.losses, player2.score.wins] = [0,0,0];
-    winner = '';
-    currentRound = 1;
-    board.setupBoard();
+    playAgain();
   }
 
   const playAgain = () => {
-
+    winner = '';
+    currentRound = 1;
+    board.setupBoard();
   }
 
   return { playRound, getGameBoard: board.getGameBoard, getCurrentTurn, checkValidMove, getIfWinner, getWinnerAndScore, playAgain, resetGame};
@@ -214,18 +213,23 @@ function createDisplayController(){
 
   const init = () => {
     updateGameDisplay();
-    const dom = domElements;
-    dom.startupModal.style.display = 'static';
+    const dom = domElements;  
 
     dom.resetButton.addEventListener('click', () => {
       game.resetGame();
       updateGameDisplay();
-
     });
 
     dom.modalPvp.addEventListener('click', () => {
         dom.startupModal.style.display = 'none';
         dom.gameBoard.style.display = 'grid';
+        dom.buttonContainer.style.display = 'flex';
+        dom.headerTurn.style.display = 'block';
+      })
+    
+      dom.playAgainButton.addEventListener('click', () => {
+        game.playAgain();
+        updateGameDisplay();
       })
     }
 

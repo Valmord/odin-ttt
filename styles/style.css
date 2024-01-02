@@ -11,7 +11,7 @@
     --main-color: #c084fc;
     --secondary-color: #581c87;
     --cell-color: #d8b4fe;
-    --border-color: #334155;
+    --border-color: #9d174d;
     --font-color: ;
     --outline-color: #5b21b6;
 }
@@ -31,6 +31,7 @@ header {
         font-size: 1.6rem;
         color: aliceblue;
         margin-bottom: -15px;
+        display: none;
     }
 }
 
@@ -100,6 +101,23 @@ main {
 
 .board-container > .prevent-click {
     background-color: red;
+}
+
+.btn-container {
+    display: none;
+    justify-content: center;
+    gap: 20px;
+    & button {
+        background-color: var(--cell-color);
+        appearance: none;
+        outline: none;
+        padding: 5px 10px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 15px;
+        font-weight: bold;
+    }
 }
 
 .score {

@@ -20,11 +20,19 @@ body {
     background-color: var(--main-color);
 }
 
-h1 {
+header {
     text-align: center;
-    font-size: 4rem;
-}
 
+    & h1 {
+        font-size: 4rem;
+    }
+
+    & p {
+        font-size: 1.6rem;
+        color: aliceblue;
+        margin-bottom: -15px;
+    }
+}
 
 .modal-startup {
     z-index: 1;
@@ -81,10 +89,21 @@ main {
     gap: 10px;
 
     & .board-cell {
+        cursor: pointer;
         background-color: var(--cell-color);
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: 12rem;
     }
+}
+
+.board-container > .prevent-click {
+    background-color: red;
+}
+
+.score {
+    text-align: center;
+    font-size: 1.6rem;
+    display: block;
 }

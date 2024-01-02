@@ -3,51 +3,41 @@ const domElements = {
   modalPvp: document.querySelector('.pvp'),
   modalPvm: document.querySelector('.pvm'),
   gameBoard: document.querySelector('.board-container'),
-
-  init(){
-    this.startupModal.style.display = 'static';
-    this.modalPvp.addEventListener('click', () => {
-      this.startupModal.style.display = 'none';
-      settings.mode = 'pvp'
-      this.gameBoard.style.display = 'grid';
-    })
-  },
+  headerTurn: document.querySelector('body>header>p'),
+  scoreElement: document.querySelector('.score'),
+  resetButton: document.querySelector('.reset-button'),
 }
 
-domElements.init();
-
 function createGameBoard(){
-  const [ROWS, COLUMNS] = [3, 3];
-  const board = [];
+  const [rows, columns] = [3, 3];
+  let gameBoard = [];
 
-  // Create Board
-  for (let i = 0; i < ROWS; i++) {
-    board[i] = [];
-    for (let j = 0; j < COLUMNS; j++){
-      board[i].push('_');
+  const setupBoard = () => {
+    gameBoard = [];
+    for (let i = 0; i < rows; i++) {
+      gameBoard[i] = [];
+      for (let j = 0; j < columns; j++){
+        gameBoard[i].push('');
+      }
     }
   }
+  setupBoard();
 
-  const updateBoard = (playerMove, player) => {
-    playerMove -= 1;
-    console.log(playerMove, player);
-    const row = Math.floor(playerMove/3);
-    const col = playerMove % 3;
-    console.log(row, col);
-    board[row][col] = player;
+
+  const updateBoard = (row, col, icon) => {
+    console.log(row, col, icon);
+    gameBoard[row][col] = icon;
   }
 
-  const getGameBoard = () => board;
+  const getGameBoard = () => gameBoard;
 
   const printBoard = () => {
-    board.forEach( (row, index) => {
+    gameBoard.forEach( (row, index) => {
       console.log(`${index}: ${row.join(' ')}`);
     })
   }
 
-
-
-  return {getGameBoard, printBoard, updateBoard}
+  return {getGameBoard, updateBoard, setupBoard}
 }
 
 function createPlayer(icon){
@@ -63,8 +53,12 @@ function createPlayer(icon){
 
 function createGameController(){
   const board = createGameBoard();
+  const player1 = createPlayer('X');
+  const player2 = createPlayer('O');
+  let winner = '';
   let currentPlayer = player1.icon;
-  let currentRound = 0;
+  let currentRound = 1;
+
 
   const checkIfSame = function(playerIcon){
     return function(currentCellValue){
@@ -72,7 +66,7 @@ function createGameController(){
     }
   }
 
-  const checkWinner = player => {
+  const checkIfWinner = player => {
     const checkPlayer = checkIfSame(player);
     const bd = board.getGameBoard();
     switch (true) {
@@ -103,101 +97,139 @@ function createGameController(){
       case 'X':
         player1.score.wins++;
         player2.score.losses++;
+        winner = 'X';
         break;
       case 'O':
         player1.score.losses++;
         player2.score.wins++;
+        winner = 'O';
         break;
       default:
         player1.score.draws++;
         player2.score.draws++;
+        winner = 'draw';
     }
   }
 
-  const displayScore = () => {
-    console.log(
-`player1: ${player1.score.wins}w, ${player1.score.losses}l, ${player1.score.draws}d
-player2: ${player2.score.wins}w, ${player2.score.losses}l, ${player2.score.draws}d`)
+  const getWinnerAndScore = () => {
+    const scoreString = 
+    `Player 1 score: ${player1.score.wins}w, ${player1.score.losses}l, ${player1.score.draws}d ` + 
+    `Player 2 score: ${player2.score.wins}w, ${player2.score.losses}l, ${player2.score.draws}d`;
+    return winner === 'draw' ? 'Draw! ' + scoreString : `${winner} wins! ` + scoreString;
   }
 
-  const validatePlayerMove = (playerMove) => {
-    playerMove -= 1; 
-    const row = Math.floor(playerMove/3);
-    const col = playerMove % 3;
-    return board.getGameBoard()[row][col] === '_'
-  }
+  const getIfWinner = () => winner;
 
-  const getPlayerMove = () => {
-    while (true) {
-      let playerMove = prompt('Please type 1-9');
-      if (playerMove.toLowerCase() === 'q') {
-        return;
-      }
-      if (+playerMove > 0 && +playerMove <= 9 && validatePlayerMove(+playerMove)) {
-        return +playerMove;
-      }
-    }
-  }
+  const getCurrentTurn = () => currentPlayer;
 
   const switchPlayers = () => currentPlayer = currentPlayer === player1.icon ? player2.icon : player1.icon;
 
-  const playRound = () => {
-    board.printBoard();
-    const playerMove = getPlayerMove();
-    board.updateBoard(playerMove, currentPlayer);
-    currentRound++;
-    if (currentRound >= 5 && checkWinner(currentPlayer)){
-      console.log(`Player ${currentPlayer} is the winner!`);
-      board.printBoard();
-      updatePlayerScores(currentPlayer);
+  const checkValidMove = (row, col) => {
+    const bd = board.getGameBoard();  
+    console.log(bd);
+    if (bd[row][col] === '') {
       return true;
-    } else if (currentRound === 9) {
-      console.log(`Player ${currentPlayer} is the winner!`);
+    } else false;
+  }
+
+  const playRound = (row, col) => {
+    console.log(currentPlayer); 
+    board.updateBoard(row, col, currentPlayer);
+    currentRound++;
+    if (currentRound >= 5 && checkIfWinner(currentPlayer)){
+      updatePlayerScores(currentPlayer);
+    } else if (currentRound > 9) {
       updatePlayerScores('draw');
     } else {
       switchPlayers();
     }
   }
 
-  return { playRound, displayScore, getGameBoard: board.getGameBoard };
-}
+  const resetGame = () => {
+    [player1.score.draws, player1.score.losses, player1.score.wins] = [0,0,0];
+    [player2.score.draws, player2.score.losses, player2.score.wins] = [0,0,0];
+    winner = '';
+    currentRound = 1;
+    board.setupBoard();
+  }
 
-const player1 = createPlayer('X');
-const player2 = createPlayer('O');
-const settings = {
-  mode: 'pvp',
+  const playAgain = () => {
+
+  }
+
+  return { playRound, getGameBoard: board.getGameBoard, getCurrentTurn, checkValidMove, getIfWinner, getWinnerAndScore, playAgain, resetGame};
 }
 
 function createDisplayController(){
   const game = createGameController();
 
+  const updateGameDisplay = () => {
+    displayBoardGrid();
+    addCellListeners();
+    displayCurrentTurn();
+    domElements.scoreElement.textContent = '';
+    if (game.getIfWinner()) {
+      domElements.scoreElement.textContent = game.getWinnerAndScore();
+    }
+  }
+
   const displayBoardGrid = () => {
       const board = game.getGameBoard();
-      console.log({board});
+      domElements.gameBoard.textContent = '';
       for(i = 0; i < board.length; i++){
         for (j = 0; j < board.length; j++){
           let gridCell = document.createElement('div');
           gridCell.classList.add('board-cell')
-          gridCell.textContent += board[i][j];  
+          gridCell.dataset.row = i;
+          gridCell.dataset.column = j;
+          gridCell.textContent += board[i][j]; 
           domElements.gameBoard.appendChild(gridCell);
         }
       }
   }
-  return { displayBoardGrid }
+
+  const displayCurrentTurn = () => {
+    const turnText = `It's currently ${game.getCurrentTurn()}'s turn`;
+    domElements.headerTurn.textContent = turnText;
+  }
+
+  const addCellListeners = () => {
+    const cells = document.querySelectorAll('.board-cell');
+    cells.forEach( cell => {
+      cell.addEventListener('click', event => {
+        const [row, col] = [cell.dataset.row, cell.dataset.column];
+        if (game.getIfWinner() || !game.checkValidMove(row,col)){
+          event.preventDefault();
+          cell.classList.add('prevent-click');
+          setTimeout( () => {
+            cell.classList.remove('prevent-click');
+          },1000)
+        } else {
+            game.playRound(row,col);
+            updateGameDisplay();
+        }
+      });
+    })
+  }
+
+  const init = () => {
+    updateGameDisplay();
+    const dom = domElements;
+    dom.startupModal.style.display = 'static';
+
+    dom.resetButton.addEventListener('click', () => {
+      game.resetGame();
+      updateGameDisplay();
+
+    });
+
+    dom.modalPvp.addEventListener('click', () => {
+        dom.startupModal.style.display = 'none';
+        dom.gameBoard.style.display = 'grid';
+      })
+    }
+
+  return { init };
 
 }
-const displayController = createDisplayController();
-displayController.displayBoardGrid();
-// displayController.init();
-
-// function main(){
-//   const game = createGameController();
-//   while(true){
-//     if(game.playRound()){
-//       game.displayScore();
-//       break;
-//     }
-//   }
-// }
-
-// main();
+createDisplayController().init();

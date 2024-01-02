@@ -1,3 +1,21 @@
+const domElements = {
+  startupModal: document.querySelector('.modal-startup'),
+  modalPvp: document.querySelector('.pvp'),
+  modalPvm: document.querySelector('.pvm'),
+  gameBoard: document.querySelector('.board-container'),
+
+  init(){
+    this.startupModal.style.display = 'static';
+    this.modalPvp.addEventListener('click', () => {
+      this.startupModal.style.display = 'none';
+      settings.mode = 'pvp'
+      this.gameBoard.style.display = 'grid';
+    })
+  },
+}
+
+domElements.init();
+
 function createGameBoard(){
   const [ROWS, COLUMNS] = [3, 3];
   const board = [];
@@ -141,20 +159,45 @@ player2: ${player2.score.wins}w, ${player2.score.losses}l, ${player2.score.draws
     }
   }
 
-  return { playRound, displayScore };
+  return { playRound, displayScore, getGameBoard: board.getGameBoard };
 }
 
 const player1 = createPlayer('X');
 const player2 = createPlayer('O');
-
-function main(){
-  const game = createGameController();
-  while(true){
-    if(game.playRound()){
-      game.displayScore();
-      break;
-    }
-  }
+const settings = {
+  mode: 'pvp',
 }
 
-main();
+function createDisplayController(){
+  const game = createGameController();
+
+  const displayBoardGrid = () => {
+      const board = game.getGameBoard();
+      console.log({board});
+      for(i = 0; i < board.length; i++){
+        for (j = 0; j < board.length; j++){
+          let gridCell = document.createElement('div');
+          gridCell.classList.add('board-cell')
+          gridCell.textContent += board[i][j];  
+          domElements.gameBoard.appendChild(gridCell);
+        }
+      }
+  }
+  return { displayBoardGrid }
+
+}
+const displayController = createDisplayController();
+displayController.displayBoardGrid();
+// displayController.init();
+
+// function main(){
+//   const game = createGameController();
+//   while(true){
+//     if(game.playRound()){
+//       game.displayScore();
+//       break;
+//     }
+//   }
+// }
+
+// main();

@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700;900&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Ubuntu:wght@400;500;700&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+}
+
+:root {
+    font-size: 62.5%;
+    font-family: Roboto, serif;
+    --main-color: #c084fc;
+    --secondary-color: #581c87;
+    --cell-color: #d8b4fe;
+    --border-color: #334155;
+    --font-color: ;
+    --outline-color: #5b21b6;
+}
+
+body {
+    background-color: var(--main-color);
+}
+
+h1 {
+    text-align: center;
+    font-size: 4rem;
+}
+
+
+.modal-startup {
+    z-index: 1;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    background-color: rgb(0, 0, 0, 0.3);
+
+    & .modal-container {
+        background-color: var(--main-color);
+        border: 2px solid var(--border-color);
+        border-radius: 15px;
+        height: fit-content;
+        padding: 20px;
+        width: 200px;
+        font-size: 2rem;
+    }
+
+    & .pvp {
+        margin-bottom: 20px;
+    }
+
+    & .pvp, .pvm {
+        text-align: center;
+        cursor: pointer;
+    }
+
+    & .pvp:hover, .pvm:hover {
+        outline: 2px solid var(--outline-color);
+        outline-offset: 2px;
+    }
+}
+
+main {
+    display: flex;
+
+}
+
+.board-container {
+    margin: 30px auto;
+    display: none;
+    background-color: var(--secondary-color);
+    border: 2px solid var(--border-color);
+    border-radius: 15px;
+    width: fit-content;
+    padding: 20px;
+    grid-template-columns: 150px 150px 150px;
+    grid-template-rows: 150px 150px 150px;
+    gap: 10px;
+
+    & .board-cell {
+        background-color: var(--cell-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12rem;
+    }
+}

@@ -4,11 +4,14 @@ const domElements = {
   modalPvm: document.querySelector('.pvm'),
   gameBoard: document.querySelector('.board-container'),
   headerTurn: document.querySelector('body>header>p'),
-  scoreElement: document.querySelector('.score'),
+  winnerElement: document.querySelector('.winner'),
+  scoreTableElement: document.querySelector('.score-table'),
+  scoreContainer: document.querySelector('.score-container'),
   resetButton: document.querySelector('.reset-button'),
   playAgainButton: document.querySelector('.play-again-button'),
   buttonContainer: document.querySelector('.btn-container'),
   changeModeButton: document.querySelector('.change-mode'),
+  aiDifficultyButton: document.querySelector('.ai-difficulty'),
 }
 
 function createGameBoard(){
@@ -57,6 +60,7 @@ function createGameController(){
   const board = createGameBoard();
   const player1 = createPlayer('X');
   const player2 = createPlayer('O');
+  let aiDifficult = 0;
   let winner = '';
   let currentPlayer = player1.icon;
   let currentRound = 1;
@@ -68,7 +72,7 @@ function createGameController(){
     }
   }
 
-  const checkIfWinner = player => {
+  const checkIfWinner = (player) => {
     const checkPlayer = checkIfSame(player);
     const bd = board.getGameBoard();
     switch (true) {
@@ -114,10 +118,7 @@ function createGameController(){
   }
 
   const getWinnerAndScore = () => {
-    const scoreArr = [
-      '',
-      `Player 1 score: ${player1.score.wins} wins, ${player1.score.losses} losses, ${player1.score.draws} draws`,
-      `Player 2 score: ${player2.score.wins} wins, ${player2.score.losses} losses, ${player2.score.draws} draws`];
+    const scoreArr = ['', player1.score, player2.score ];
       if (winner === 'draw') {
         scoreArr[0] = 'Draw!';
       } else {
@@ -139,16 +140,50 @@ function createGameController(){
     } else false;
   }
 
+  // const setAiDifficulty = difficult => aiDifficult = difficult;
+
+  // const getBestAIMove = () => {
+  //   const bestPlay = minimax(board.getGameBoard(),'O');
+  // }
+
+  // const minimax = (currentBoardState, currentIcon) => {
+  //   const availCellsIndexes = getEmptyCells(currentBoardState);
+  //   if (checkIfWinner('X', currentBoardState)) {
+  //     return { score: -1 };
+  //   } else if (checkIfWinner(currentBoardState, 'O')) {
+  //     return { score: 1 };
+  //   } else if (availCellsIndexes.length === 0) {
+  //     return { score: 0 };
+  //   }
+
+  // }
+
+  // const getEmptyCells = bd => {
+  //   bd = bd || board.getGameBoard();
+  //   const boardArr = [bd.flat()];
+  //   const filteredBoard = boardArr.filter( (value, index) => {
+  //     if (value === '') return index;
+  //   })
+  // }
+
+
   const getAIMove = () => {
-    while(true){
-      let aiMove = Math.floor(Math.random()*9);
-      let row = Math.floor(aiMove / 3);
-      let col = aiMove % 3;
-      if (checkValidMove(row, col)) {
-        playRound(row, col, 'pvm');
-        break;
+    if (!aiDifficult) {
+      while(true){
+        let aiMove = Math.floor(Math.random()*9);
+        let row = Math.floor(aiMove / 3);
+        let col = aiMove % 3;
+        if (checkValidMove(row, col)) {
+          playRound(row, col, 'pvm');
+          return;
+        }
       }
-    }  
+    }
+    // } else {
+    //   const [row, col] = getBestAIMove();
+    //   playRound(row, col, "pvm");
+    // }
+
   }
 
   const playRound = (row, col, mode) => {
@@ -197,15 +232,31 @@ function createDisplayController(){
   }
 
   const displayWinnerAndScore = () => {
-    domElements.scoreElement.textContent = '';
+    domElements.scoreContainer.style.display = 'none';
+
     if (game.getIfWinner()) {
+      domElements.scoreContainer.style.display = 'flex';
       const scoreArray = game.getWinnerAndScore();
-      console.table(scoreArray);
-      scoreArray.forEach( value => {
-        const pElement = document.createElement('p');
-        pElement.textContent = value;
-        domElements.scoreElement.appendChild(pElement);
-      })
+      domElements.winnerElement.textContent = scoreArray[0];
+      domElements.scoreTableElement.innerHTML =
+      `<tr>
+      <th> </th>
+      <th>Wins</th>
+      <th>Losses</th>
+      <th>Draws</th>
+    </tr>`
+      for (let i = 1; i < scoreArray.length; i++) { 
+        const rowElement = document.createElement('tr');
+        const rowHeader = document.createElement('th');
+        rowHeader.textContent = `Player ${i}`;
+        rowElement.appendChild(rowHeader);
+        for (let prop in scoreArray[i]){
+          const dataElement = document.createElement('td');
+          dataElement.textContent = scoreArray[i][prop];
+          rowElement.appendChild(dataElement);
+        }
+        domElements.scoreTableElement.appendChild(rowElement);
+      }
     }
   }
 
@@ -252,6 +303,16 @@ function createDisplayController(){
     updateGameDisplay();
     const dom = domElements;  
 
+    dom.aiDifficultyButton.addEventListener('click', function(){
+      if (this.textContent === "Random AI Mode"){
+        this.textContent = "Impossible Mode";
+        game.setAiDifficulty(9999);
+      } else {
+        this.textContent = "Random AI Mode";
+        game.setAiDifficulty(0);
+      }
+    })
+
     dom.resetButton.addEventListener('click', () => {
       game.resetGame();
       updateGameDisplay();
@@ -270,6 +331,7 @@ function createDisplayController(){
         dom.buttonContainer.style.display = 'flex';
         dom.headerTurn.style.display = 'block';
         gameMode = 'pvm';
+        dom.aiDifficultyButton.classList.toggle('button-hidden');
       })
     
       dom.playAgainButton.addEventListener('click', () => {
@@ -279,6 +341,7 @@ function createDisplayController(){
 
       dom.changeModeButton.addEventListener('click', () => {
         gameMode = gameMode === 'pvp' ? 'pvm' : 'pvp';
+        // dom.aiDifficultyButton.classList.toggle('button-hidden');
         if (gameMode === 'pvm' && game.getCurrentTurn() === 'O') {
           game.getAIMove();
           updateGameDisplay();
